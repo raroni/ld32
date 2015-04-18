@@ -2,15 +2,19 @@
   var scene, game, camera, width, height, controls;
   var mouseDeltaX = 0, mouseDeltaY = 0;
   var running = false;
+  var mouseEvents = [];
   var player;
   var newtonTimeBank = 0;
   var gravity = new Vector3(0, -1, 0);
   var keysPressed = {};
   var newton = new Newton();
+  var nextEntityID = 0;
 
   function Player() {
-    this.newtonID = newton.create(new Vector3(0, 20, 100), 1);
+    this.id = nextEntityID++;
+    this.newtonID = newton.create(new Vector3(0, 20, 60), 1);
     this.rotation = new Vector3(0, 0, -1);
+    this.shootingID = Shooting.create(this);
   }
 
   Player.prototype = {
@@ -40,9 +44,21 @@
     renderer.setSize(width, height);
   }
 
+  function updatePlayerShooting() {
+    mouseEvents.forEach(function(eventName) {
+      if(eventName === "down") {
+        Shooting.activate(player.shootingID);
+      }
+      else if(eventName === "up") {
+        Shooting.deactivate(player.shootingID);
+      }
+    });
+  }
+
   function updatePlayer(timeDelta) {
     updatePlayerRotation();
     updatePlayerForce(timeDelta);
+    updatePlayerShooting();
   }
 
   function updatePlayerForce(timeDelta) {
@@ -113,6 +129,9 @@
     if(running) {
       updatePlayer(timeDelta);
       updatePhysics(timeDelta);
+      Shooting.update(timeDelta);
+      Projectiles.update();
+      mouseEvents.length = 0;
     }
     updateCamera();
     renderer.render(scene, camera);
@@ -131,6 +150,7 @@
     camera.rotation.order = "YXZ";
     resize(width, height);
     scene = new THREE.Scene();
+    Game.scene = scene; // hack
 
     scene.fog = new THREE.Fog(0xffffff, 20, 200);
 
@@ -179,10 +199,12 @@
 
     var pointLight = new THREE.PointLight( 0xFFFFFF );
     pointLight.position.x = 10;
-    pointLight.position.y = 50;
-    pointLight.position.z = 130;
+    pointLight.position.y = 80;
+    pointLight.position.z = 0;
 
     scene.add(pointLight);
+
+    Projectiles.init(newton);
 
     container.appendChild(renderer.domElement);
   };
@@ -202,6 +224,16 @@
     }
   }
 
+  function handleMouseDown() {
+    mouseDown = true;
+    mouseEvents.push('down');
+  }
+
+  function handleMouseUp() {
+    mouseDown = false;
+    mouseEvents.push('up');
+  }
+
   function handleKeyPress(key) {
     keysPressed[key] = true;
   }
@@ -218,6 +250,8 @@
     pause: pause,
     handleMouseMove: handleMouseMove,
     handleKeyPress: handleKeyPress,
-    handleKeyRelease: handleKeyRelease
+    handleKeyRelease: handleKeyRelease,
+    handleMouseDown: handleMouseDown,
+    handleMouseUp: handleMouseUp
   };
 })();

@@ -73,6 +73,14 @@
     }
   }
 
+  function handleMouseUp() {
+    Game.handleMouseUp();
+  }
+
+  function handleMouseDown() {
+    Game.handleMouseDown();
+  }
+
   function handleKeyRelease(event) {
     var key = keyCodeMap[event.keyCode];
     if(key) {
@@ -87,6 +95,8 @@
 
     document.addEventListener('pointerlockchange', handlePointerLockChange);
     document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('resize', handleResize);
     window.addEventListener('keydown', handleKeyPress);
     window.addEventListener('keyup', handleKeyRelease);
