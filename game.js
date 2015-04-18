@@ -157,6 +157,8 @@
     player = new Player();
 
     renderer = new THREE.WebGLRenderer();
+    renderer.shadowMapEnabled = true;
+    renderer.shadowMapType = THREE.PCFSoftShadowMap;
     renderer.autoClear = false;
     renderer.setClearColor(0xffffff, 1);
     camera = new THREE.PerspectiveCamera(viewAngle, 1, near, far);
@@ -173,7 +175,7 @@
     //camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     var wallMaterial = new THREE.MeshLambertMaterial({
-      color: 0xcccccc,
+      color: 0xbbbbbb,
       shading: THREE.FlatShading
     });
 
@@ -199,6 +201,7 @@
       platformGeometry,
       wallMaterial
     );
+    platformA.receiveShadow = true;
     platformA.position.set(0, -200, -60)
     scene.add(platformA);
 
@@ -206,15 +209,31 @@
       platformGeometry,
       wallMaterial
     );
+    platformB.receiveShadow = true;
     platformB.position.set(0, -200, 60);
     scene.add(platformB);
 
-    var pointLight = new THREE.PointLight(0xFFFFFF);
-    pointLight.position.x = 10;
-    pointLight.position.y = 80;
-    pointLight.position.z = 0;
+    var spotLight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI/2, 1);
+    spotLight.position.set(30, 200, 40);
+    spotLight.target.position.set(0, 0, 0);
+    spotLight.castShadow = true;
 
-    scene.add(pointLight);
+    spotLight.shadowCameraNear = 10;
+    spotLight.shadowCameraFar = 1000;
+    spotLight.shadowCameraFov = 50;
+
+    scene.add(spotLight);
+
+    var pointLight1 = new THREE.PointLight(0xffffff, 0.5);
+    pointLight1.position.set(20, -20, 60);
+    scene.add(pointLight1);
+
+    var pointLight2 = new THREE.PointLight(0xffffff, 0.3);
+    pointLight2.position.set(-40, -20, 60);
+    scene.add(pointLight2);
+
+
+
 
     Bullets.init(newton);
 

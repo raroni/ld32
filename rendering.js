@@ -22,6 +22,8 @@
     if(!material) throw new Error("Material not found.");
 
     var mesh = new THREE.Mesh(geometry, material)
+    mesh.castShadow = true;
+    //mesh.receiveShadow = false;
     Game.scene.add(mesh);
 
     components.push(mesh);
