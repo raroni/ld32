@@ -18,7 +18,8 @@
     var entity = create();
     entity.mesh = Rendering.create('projectile', 'projectile');
 
-    entity.body = newton.create(position, Config.projectileRadius);
+    entity.body = newton.createBody(position);
+    newton.createSphereCollider(entity.body, Config.projectileRadius);
     var body = newton.getBody(entity.body);
     body.position.set(position);
     body.force.set(force);

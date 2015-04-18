@@ -1,22 +1,29 @@
 (function() {
   var tickDuration = 0.03;
 
-  function Body(position, radius) {
+  function Body(position) {
     this.position = position
-    this.radius = radius;
     this.force = new Vector3(0, 0, 0);
     this.velocity = new Vector3(0, 0, 0);
   }
 
   function Newton() {
     this.bodies = [];
+    this.sphereColliders = [];
+    this.boxColliders = [];
     this.count = 0;
   }
 
   Newton.prototype = {
-    create: function(position, radius) {
-      this.bodies.push(new Body(position, radius));
+    createBody: function(position) {
+      this.bodies.push(new Body(position));
       return this.bodies.length-1;
+    },
+    createSphereCollider: function(body, radius) {
+      this.sphereColliders.push({
+        bodyHandle: body,
+        radius: radius
+      })
     },
     integrate: function() {
       var halfDuration = tickDuration/2;
@@ -34,14 +41,17 @@
       return this.bodies[id];
     },
     findCollisions: function() {
-      var entityA, entityB, difference;
+      var sphereColliderA, sphereColliderB, difference, bodyA, bodyB, radiiSum;
 
-      for(var i=0; i<this.bodies.length; ++i) {
-        entityA = this.bodies[i];
+      for(var i=0; i<this.sphereColliders.length; ++i) {
+        sphereColliderA = this.sphereColliders[i];
+        bodyA = this.bodies[sphereColliderA.bodyHandle];
         for(var n=i+1; n<this.bodies.length; ++n) {
-          entityB = this.bodies[n];
-          difference = Vector3.subtract(entityA.position, entityB.position);
-          if(difference.calcSquaredLength() < entityA.radius + entityB.radius) {
+          sphereColliderB = this.sphereColliders[n];
+          bodyB = this.bodies[sphereColliderB.bodyHandle];
+          difference = Vector3.subtract(bodyA.position, bodyB.position);
+          radiiSum = sphereColliderA.radius + sphereColliderB.radius;
+          if(difference.calcSquaredLength() < Math.pow(radiiSum, 2)) {
             console.log('collision!');
           }
         }

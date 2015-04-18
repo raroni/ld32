@@ -25,8 +25,11 @@
       Math.cos(rotation.y)*Math.cos(rotation.x)*-1
     );
 
-    var position = Vector3.add(entity.getPosition(), direction);
-    position.y -= 2;
+    var position = Vector3.add(
+      entity.getPosition(),
+      Vector3.multiply(direction, 2)
+    );
+    position.y -= 1.5;
     var force = Vector3.multiply(direction, 30);
 
     Entities.createProjectile(position, force);

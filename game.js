@@ -12,23 +12,27 @@
 
   function Player() {
     this.id = nextEntityID++;
-    this.newtonID = newton.create(new Vector3(0, 20, 60), 1);
+    this.bodyHandle = newton.createBody(new Vector3(0, 20, 60));
+    newton.createSphereCollider(this.bodyHandle, 1);
     this.rotation = new Vector3(0, 0, -1);
     this.shootingID = Shooting.create(this);
   }
 
   Player.prototype = {
     getForce: function() {
-      return newton.getBody(this.newtonID).force;
+      return this.getBody().force;
     },
     getVelocity: function() {
-      return newton.getBody(this.newtonID).velocity;
+      return this.getBody().velocity;
     },
     applyForce: function(v) {
       this.getForce().add(v);
     },
     getPosition: function() {
-      return newton.getBody(this.newtonID).position;
+      return this.getBody().position;
+    },
+    getBody: function() {
+      return newton.getBody(this.bodyHandle);
     }
   }
 
@@ -195,6 +199,8 @@
     );
     sphere.position.set(0, 5, -60);
     scene.add(sphere);
+    var sphereBody = newton.createBody(new Vector3(sphere.position.x, sphere.position.y, sphere.position.z));
+    newton.createSphereCollider(sphereBody, radius*2);
 
     var platformGeometry = new THREE.BoxGeometry(40, 400, 40);
     var platformA = new THREE.Mesh(
@@ -232,9 +238,6 @@
     pointLight2.position.set(-40, -20, 60);
     scene.add(pointLight2);
 
-
-
-
     Bullets.init(newton);
 
     HUDRendering.init();
@@ -242,7 +245,6 @@
     Crosshair.setup();
 
     resize(width, height);
-
 
     container.appendChild(renderer.domElement);
   };
