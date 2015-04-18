@@ -2,6 +2,30 @@
   var scene, game, camera, width, height, controls;
   var mouseDeltaX = 0, mouseDeltaY = 0;
   var running = false;
+  var player;
+  var newtonTimeBank = 0;
+  var keysPressed = {};
+  var newton = new Newton();
+
+  function Player() {
+    this.newtonID = newton.create(new Vector3(0, 20, 100), 1);
+    this.rotation = new Vector3(0, 0, -1);
+  }
+
+  Player.prototype = {
+    getForce: function() {
+      return newton.getBody(this.newtonID).force;
+    },
+    getVelocity: function() {
+      return newton.getBody(this.newtonID).velocity;
+    },
+    applyForce: function(v) {
+      this.getForce().add(v);
+    },
+    getPosition: function() {
+      return newton.getBody(this.newtonID).position;
+    }
+  }
 
   function calcAspect() {
     return width/height;
@@ -15,30 +39,76 @@
     renderer.setSize(width, height);
   }
 
-  function updateCameraOrientation() {
-    camera.rotation.y -= mouseDeltaX*0.001;
-    camera.rotation.y = camera.rotation.y % (Math.PI*2);
-    camera.rotation.x -= mouseDeltaY*0.001;
+  function updatePlayer(timeDelta) {
+    updatePlayerRotation();
+    updatePlayerForce(timeDelta);
+  }
+
+  function updatePlayerForce(timeDelta) {
+    var rotation = player.rotation;
+    var direction = new Vector3(
+      Math.sin(rotation.y)*Math.cos(rotation.x)*-1,
+      Math.sin(rotation.x),
+      Math.cos(rotation.y)*Math.cos(rotation.x)*-1
+    );
+    var right = Vector3.cross(direction, new Vector3(0, 1, 0));
+
+    var force = new Vector3(0, 0, 0);
+    if(keysPressed.w) {
+      force.add(direction);
+    }
+    if(keysPressed.s) {
+      force.subtract(direction);
+    }
+    if(keysPressed.d) {
+      force.add(right);
+    }
+    if(keysPressed.a) {
+      force.subtract(right);
+    }
+    force.normalize();
+    force.multiply(timeDelta);
+    player.applyForce(force);
+
+    var drag = Vector3.multiply(player.getVelocity(), -7);
+    player.applyForce(drag);
+  }
+
+  function updatePlayerRotation() {
+    player.rotation.y -= mouseDeltaX*0.001;
+    player.rotation.y = player.rotation.y % (Math.PI*2);
+    player.rotation.x -= mouseDeltaY*0.001;
     var limit = Math.PI*0.5*0.9;
-    camera.rotation.x = Math.max(camera.rotation.x, -limit);
-    camera.rotation.x = Math.min(camera.rotation.x, limit);
+    player.rotation.x = Math.max(player.rotation.x, -limit);
+    player.rotation.x = Math.min(player.rotation.x, limit);
     mouseDeltaX = 0;
     mouseDeltaY = 0;
   }
 
-  function updateCameraPosition() {
-
-  }
-
   function updateCamera() {
-    updateCameraOrientation();
-    updateCameraPosition();
+    camera.rotation.x = player.rotation.x;
+    camera.rotation.y = player.rotation.y;
+
+    var position = player.getPosition();
+    camera.position.x = position.x;
+    camera.position.y = position.y;
+    camera.position.z = position.z;
   }
 
-  function update() {
-    if(running) {
-      updateCamera();
+  function updatePhysics(timeDelta) {
+    newtonTimeBank += timeDelta;
+    while(Newton.tickDuration < newtonTimeBank) {
+      newton.tick();
+      newtonTimeBank -= timeDelta;
     }
+  }
+
+  function update(timeDelta) {
+    if(running) {
+      updatePlayer(timeDelta);
+      updatePhysics(timeDelta);
+    }
+    updateCamera();
     renderer.render(scene, camera);
   }
 
@@ -46,6 +116,8 @@
     var viewAngle = 45;
     var near = 0.1;
     var far = 10000;
+
+    player = new Player();
 
     renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(0xffffff, 1);
@@ -56,9 +128,9 @@
 
     scene.add(camera);
 
-    camera.position.set(0, 20, 100);
+    //camera.position.set(0, 20, 100);
     camera.up = new THREE.Vector3(0, 1, 0);
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    //camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     var wallMaterial = new THREE.MeshLambertMaterial({
       color: 0xcccccc,
@@ -122,12 +194,22 @@
     }
   }
 
+  function handleKeyPress(key) {
+    keysPressed[key] = true;
+  }
+
+  function handleKeyRelease(key) {
+    delete keysPressed[key];
+  }
+
   window.Game = {
     init: init,
     update: update,
     resize: resize,
     resume: resume,
     pause: pause,
-    handleMouseMove: handleMouseMove
+    handleMouseMove: handleMouseMove,
+    handleKeyPress: handleKeyPress,
+    handleKeyRelease: handleKeyRelease
   };
 })();

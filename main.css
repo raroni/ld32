@@ -1,4 +1,5 @@
 body > .lock_instructions {
+  box-sizing: border-box;
   position: absolute;
   height: 100%;
   width: 100%;
@@ -7,4 +8,8 @@ body > .lock_instructions {
   text-align: center;
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
+}
+
+body canvas {
+  display: block;
 }
