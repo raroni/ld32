@@ -26,7 +26,7 @@
     }
   }
 
-  window.Projectiles = {
+  window.Bullets = {
     init: init,
     update: update,
     create: create

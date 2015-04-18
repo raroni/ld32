@@ -27,7 +27,7 @@
     entity.renderFeed = RenderFeed.create(entity.interpolation, entity.mesh);
     entity.gravity = Gravity.create(entity.body);
 
-    entity.projectile = Projectiles.create();
+    entity.projectile = Bullets.create();
   }
 
   window.Entities = {

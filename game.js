@@ -136,7 +136,7 @@
         Interpolation.reload();
       }
       Shooting.update(timeDelta);
-      Projectiles.update();
+      Bullets.update();
       mouseEvents.length = 0;
     }
     updateCamera();
@@ -217,7 +217,7 @@
 
     scene.add(pointLight);
 
-    Projectiles.init(newton);
+    Bullets.init(newton);
 
     container.appendChild(renderer.domElement);
   };
