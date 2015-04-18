@@ -1,0 +1,10 @@
+body > .lock_instructions {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  padding-top: 4rem;
+  font-size: 80px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
