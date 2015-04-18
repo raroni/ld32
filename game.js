@@ -13,7 +13,7 @@
   function Player() {
     this.id = nextEntityID++;
     this.bodyHandle = newton.createBody(new Vector3(0, 20, 60));
-    newton.createSphereCollider(this.bodyHandle, 1);
+    newton.createSphereCollider(this.bodyHandle, 5);
     this.rotation = new Vector3(0, 0, -1);
     this.shootingID = Shooting.create(this);
   }
@@ -91,7 +91,7 @@
     var drag = Vector3.multiply(player.getVelocity(), -7);
     player.applyForce(drag);
 
-    player.applyForce(Vector3.multiply(gravity, timeDelta));
+    player.applyForce(Vector3.multiply(gravity, timeDelta*0.1));
   }
 
   function updatePlayerRotation() {
@@ -124,8 +124,10 @@
       newtonTimeBank -= timeDelta;
       executed = true;
     }
+    /*
     var position = player.getPosition();
     position.y = Math.max(5, position.y);
+    */
     return executed;
   }
 
@@ -199,8 +201,8 @@
     );
     sphere.position.set(0, 5, -60);
     scene.add(sphere);
-    var sphereBody = newton.createBody(new Vector3(sphere.position.x, sphere.position.y, sphere.position.z));
-    newton.createSphereCollider(sphereBody, radius*2);
+    //var sphereBody = newton.createBody(new Vector3(sphere.position.x, sphere.position.y, sphere.position.z));
+    //newton.createSphereCollider(sphereBody, radius*2);
 
     var platformGeometry = new THREE.BoxGeometry(40, 400, 40);
     var platformA = new THREE.Mesh(
@@ -211,6 +213,10 @@
     platformA.position.set(0, -200, -60)
     scene.add(platformA);
 
+    var platformABody = newton.createBody(new Vector3(0, -200, -60));
+    newton.createBoxCollider(platformABody, new Vector3(40, 400, 40));
+
+
     var platformB = new THREE.Mesh(
       platformGeometry,
       wallMaterial
@@ -218,6 +224,10 @@
     platformB.receiveShadow = true;
     platformB.position.set(0, -200, 60);
     scene.add(platformB);
+
+    var platformBBody = newton.createBody(new Vector3(0, -200, 60));
+    newton.createBoxCollider(platformBBody, new Vector3(40, 400, 40));
+
 
     var spotLight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI/2, 1);
     spotLight.position.set(30, 200, 40);

@@ -31,7 +31,7 @@ Vector3.prototype = {
     this.z = 0;
   },
   normalize: function() {
-    this.divide(this.calcLength());
+    this.set(Vector3.normalize(this));
   },
   calcLength: function() {
     return Math.sqrt(this.calcSquaredLength());
@@ -72,6 +72,12 @@ Vector3.divide = function(v, n) {
   r.x /= n;
   r.y /= n;
   r.z /= n;
+  return r;
+};
+
+Vector3.normalize = function(v) {
+  var r = v.clone();
+  r.divide(v.calcLength());
   return r;
 };
 
