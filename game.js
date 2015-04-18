@@ -4,6 +4,7 @@
   var running = false;
   var player;
   var newtonTimeBank = 0;
+  var gravity = new Vector3(0, -1, 0);
   var keysPressed = {};
   var newton = new Newton();
 
@@ -72,6 +73,8 @@
 
     var drag = Vector3.multiply(player.getVelocity(), -7);
     player.applyForce(drag);
+
+    player.applyForce(Vector3.multiply(gravity, timeDelta));
   }
 
   function updatePlayerRotation() {
@@ -86,6 +89,7 @@
   }
 
   function updateCamera() {
+    // todo: should interpolate
     camera.rotation.x = player.rotation.x;
     camera.rotation.y = player.rotation.y;
 
@@ -101,6 +105,8 @@
       newton.tick();
       newtonTimeBank -= timeDelta;
     }
+    var position = player.getPosition();
+    position.y = Math.max(5, position.y);
   }
 
   function update(timeDelta) {
