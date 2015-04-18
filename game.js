@@ -68,7 +68,7 @@
       force.subtract(right);
     }
     force.normalize();
-    force.multiply(timeDelta);
+    force.multiply(timeDelta*0.5);
     player.applyForce(force);
 
     var drag = Vector3.multiply(player.getVelocity(), -7);
@@ -132,6 +132,8 @@
     resize(width, height);
     scene = new THREE.Scene();
 
+    scene.fog = new THREE.Fog(0xffffff, 20, 200);
+
     scene.add(camera);
 
     //camera.position.set(0, 20, 100);
@@ -160,19 +162,19 @@
     sphere.position.set(0, 5, -60);
     scene.add(sphere);
 
-    var platformGeometry = new THREE.BoxGeometry(40, 100, 20);
+    var platformGeometry = new THREE.BoxGeometry(40, 400, 40);
     var platformA = new THREE.Mesh(
       platformGeometry,
       wallMaterial
     );
-    platformA.position.set(0, -50, -60)
+    platformA.position.set(0, -200, -60)
     scene.add(platformA);
 
     var platformB = new THREE.Mesh(
       platformGeometry,
       wallMaterial
     );
-    platformB.position.set(0, -50, 60);
+    platformB.position.set(0, -200, 60);
     scene.add(platformB);
 
     var pointLight = new THREE.PointLight( 0xFFFFFF );
