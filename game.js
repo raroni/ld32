@@ -32,14 +32,11 @@
     }
   }
 
-  function calcAspect() {
-    return width/height;
-  }
-
   function resize(newWidth, newHeight) {
+    Rendering.resize(newWidth, newHeight);
     width = newWidth;
     height = newHeight;
-    camera.aspect = calcAspect();
+    camera.aspect = Rendering.calcAspect();
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
   }
@@ -142,7 +139,9 @@
     updateCamera();
     Interpolation.update(newtonTimeBank/Newton.tickDuration);
     RenderFeed.update();
+    renderer.clear();
     renderer.render(scene, camera);
+    HUDRendering.render(renderer);
   }
 
   function init(container, width, height) {
@@ -158,10 +157,10 @@
     player = new Player();
 
     renderer = new THREE.WebGLRenderer();
+    renderer.autoClear = false;
     renderer.setClearColor(0xffffff, 1);
     camera = new THREE.PerspectiveCamera(viewAngle, 1, near, far);
     camera.rotation.order = "YXZ";
-    resize(width, height);
     scene = new THREE.Scene();
     Game.scene = scene; // hack
 
@@ -210,7 +209,7 @@
     platformB.position.set(0, -200, 60);
     scene.add(platformB);
 
-    var pointLight = new THREE.PointLight( 0xFFFFFF );
+    var pointLight = new THREE.PointLight(0xFFFFFF);
     pointLight.position.x = 10;
     pointLight.position.y = 80;
     pointLight.position.z = 0;
@@ -218,6 +217,13 @@
     scene.add(pointLight);
 
     Bullets.init(newton);
+
+    HUDRendering.init();
+
+    Crosshair.setup();
+
+    resize(width, height);
+
 
     container.appendChild(renderer.domElement);
   };

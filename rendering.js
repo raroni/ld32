@@ -2,6 +2,7 @@
   var materials = {};
   var geometries = {};
   var components = [];
+  var width, height;
 
   function init() {
     materials.projectile = new THREE.MeshLambertMaterial({
@@ -28,6 +29,16 @@
     return components.length-1;
   }
 
+  function resize(newWidth, newHeight) {
+    width = newWidth;
+    height = newHeight;
+    HUDRendering.handleResize();
+  }
+
+  function calcAspect() {
+    return width/height;
+  }
+
   function get(handle) {
     return components[handle];
   }
@@ -35,6 +46,8 @@
   window.Rendering = {
     init: init,
     create: create,
-    get: get
+    get: get,
+    resize: resize,
+    calcAspect: calcAspect
   };
 })();
