@@ -116,24 +116,31 @@
   }
 
   function updatePhysics(timeDelta) {
+    var executed = false;
     newtonTimeBank += timeDelta;
     while(Newton.tickDuration < newtonTimeBank) {
       newton.tick();
       newtonTimeBank -= timeDelta;
+      executed = true;
     }
     var position = player.getPosition();
     position.y = Math.max(5, position.y);
+    return executed;
   }
 
   function update(timeDelta) {
     if(running) {
       updatePlayer(timeDelta);
-      updatePhysics(timeDelta);
+      if(updatePhysics(timeDelta)) {
+        Interpolation.reload();
+      }
       Shooting.update(timeDelta);
       Projectiles.update();
       mouseEvents.length = 0;
     }
     updateCamera();
+    Interpolation.update(newtonTimeBank/Newton.tickDuration);
+    RenderFeed.update();
     renderer.render(scene, camera);
   }
 
@@ -141,6 +148,10 @@
     var viewAngle = 45;
     var near = 0.1;
     var far = 10000;
+
+    Entities.init(newton);
+    Rendering.init();
+    Interpolation.init(newton);
 
     player = new Player();
 

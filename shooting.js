@@ -29,7 +29,7 @@
     position.y -= 2;
     var force = Vector3.multiply(direction, 30);
 
-    Projectiles.create(position, force);
+    Entities.createProjectile(position, force);
   }
 
   function create(entity) {
