@@ -22,12 +22,17 @@
     Game.resize(window.innerWidth, window.innerHeight);
   }
 
+  function handleMouseMove(event) {
+    Game.handleMouseMove(event.movementX, event.movementY);
+  }
+
   function init() {
     gameElm = document.querySelector('div.game');
     initedGame = false;
     lockElement = document.body;
 
     document.addEventListener('pointerlockchange', handlePointerLockChange);
+    document.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('resize', handleResize);
 
     Game.init(gameElm, window.innerWidth, window.innerHeight);

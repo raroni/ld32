@@ -1,5 +1,6 @@
 (function() {
-  var scene, game, camera, width, height
+  var scene, game, camera, width, height, controls;
+  var mouseDeltaX = 0, mouseDeltaY = 0;
   var running = false;
 
   function calcAspect() {
@@ -14,21 +15,42 @@
     renderer.setSize(width, height);
   }
 
+  function updateCameraOrientation() {
+    camera.rotation.y -= mouseDeltaX*0.001;
+    camera.rotation.y = camera.rotation.y % (Math.PI*2);
+    camera.rotation.x -= mouseDeltaY*0.001;
+    var limit = Math.PI*0.5*0.9;
+    camera.rotation.x = Math.max(camera.rotation.x, -limit);
+    camera.rotation.x = Math.min(camera.rotation.x, limit);
+    mouseDeltaX = 0;
+    mouseDeltaY = 0;
+  }
+
+  function updateCameraPosition() {
+
+  }
+
+  function updateCamera() {
+    updateCameraOrientation();
+    updateCameraPosition();
+  }
+
   function update() {
     if(running) {
-      console.log(Math.random());
+      updateCamera();
     }
     renderer.render(scene, camera);
   }
 
   function init(container, width, height) {
-    var viewAngle = 75;
+    var viewAngle = 45;
     var near = 0.1;
     var far = 10000;
 
     renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(0xffffff, 1);
     camera = new THREE.PerspectiveCamera(viewAngle, 1, near, far);
+    camera.rotation.order = "YXZ";
     resize(width, height);
     scene = new THREE.Scene();
 
@@ -93,11 +115,19 @@
     running = true;
   }
 
+  function handleMouseMove(newDeltaX, newDeltaY) {
+    if(running) {
+      mouseDeltaX += newDeltaX;
+      mouseDeltaY += newDeltaY;
+    }
+  }
+
   window.Game = {
     init: init,
     update: update,
     resize: resize,
     resume: resume,
-    pause: pause
+    pause: pause,
+    handleMouseMove: handleMouseMove
   };
 })();
