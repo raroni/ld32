@@ -131,6 +131,7 @@
   function update(timeDelta) {
     if(running) {
       updatePlayer(timeDelta);
+      Gravity.update(timeDelta);
       if(updatePhysics(timeDelta)) {
         Interpolation.reload();
       }
@@ -150,6 +151,7 @@
     var far = 10000;
 
     Entities.init(newton);
+    Gravity.init(newton);
     Rendering.init();
     Interpolation.init(newton);
 

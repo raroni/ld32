@@ -25,6 +25,7 @@
 
     entity.interpolation = Interpolation.create(entity.body);
     entity.renderFeed = RenderFeed.create(entity.interpolation, entity.mesh);
+    entity.gravity = Gravity.create(entity.body);
 
     entity.projectile = Projectiles.create();
   }
