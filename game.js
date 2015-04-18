@@ -1,27 +1,30 @@
-window.Game = {
-  calcAspect: function() {
-    return window.innerWidth/window.innerHeight;
-  },
-  updateRendererSize: function() {
-    Game.camera.aspect = Game.calcAspect();
-    Game.camera.updateProjectionMatrix();
-    Game.renderer.setSize(window.innerWidth, window.innerHeight);
-  },
-  init: function() {
-    var width = 600;
-    var height = 450;
+(function() {
+  var scene, game, camera;
 
+  function calcAspect() {
+    return window.innerWidth/window.innerHeight;
+  }
+
+  function updateRendererSize() {
+    camera.aspect = calcAspect();
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  function update() {
+    renderer.render(scene, camera);
+    window.requestAnimationFrame(update);
+  }
+
+  function init() {
     var viewAngle = 75;
     var near = 0.1;
     var far = 10000;
 
-    var renderer = new THREE.WebGLRenderer();
-    Game.renderer = renderer;
+    renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(0xffffff, 1);
-    var camera = new THREE.PerspectiveCamera(viewAngle, Game.calcAspect(), near, far);
-    Game.camera = camera;
-    var scene = new THREE.Scene();
-    Game.scene = scene;
+    camera = new THREE.PerspectiveCamera(viewAngle, calcAspect(), near, far);
+    scene = new THREE.Scene();
 
     scene.add(camera);
 
@@ -76,13 +79,11 @@ window.Game = {
     var container = document.body;
     container.appendChild(renderer.domElement);
 
-    Game.updateRendererSize();
+    updateRendererSize();
 
-    window.addEventListener('resize', Game.updateRendererSize);
-    Game.update();
-  },
-  update: function() {
-    Game.renderer.render(Game.scene, Game.camera);
-    //window.requestAnimationFrame(Game.update);
-  }
-};
+    window.addEventListener('resize', updateRendererSize);
+    update();
+  };
+
+  window.initGame = init;
+})();
