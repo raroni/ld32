@@ -1,3 +1,4 @@
 window.Config = {
-  projectileRadius: 1
+  bulletRadius: 1,
+  explosionMaterialsCount: 10
 };

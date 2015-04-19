@@ -1,16 +1,15 @@
 (function() {
   var tickDuration = 0.03;
 
-  function Body(handle, position) {
-    this.handle = handle;
+  function Body(position) {
     this.position = position
     this.force = new Vector3(0, 0, 0);
     this.velocity = new Vector3(0, 0, 0);
   }
 
   function Newton() {
-    this.bodies = [];
-    this.sphereColliders = [];
+    this.bodies = new ComponentList();
+    this.sphereColliders = new ComponentList();
     this.boxColliders = [];
     this.count = 0;
     this.freelists = {
@@ -21,18 +20,13 @@
 
   Newton.prototype = {
     createBody: function(position) {
-      var handle = this.freelists.body.pop() || this.bodies.length;
-      this.bodies.push(new Body(handle, position));
-      return handle;
+      return this.bodies.add(new Body(position));
     },
     createSphereCollider: function(body, radius) {
-      var handle = this.freelists.sphereCollider.pop() || this.sphereColliders.length;
-      this.sphereColliders.push({
-        handle: handle,
+      return this.sphereColliders.add({
         bodyHandle: body,
         radius: radius
       });
-      return handle;
     },
     createBoxCollider: function(body, dimensions) {
       this.boxColliders.push({
@@ -41,51 +35,38 @@
       });
     },
     removeBody: function(handle) {
-      for(var i=0; i<bodies.length; ++i) {
-        if(bodies[i].handle == handle) {
-          bodies.splice(i, 1);
-          freelists.body.push(handle);
-          return;
-        }
-      }
-      throw new Error("Could not remove body.");
+      this.bodies.remove(handle);
     },
     removeSphereCollider: function(handle) {
-      for(var i=0; i<this.sphereColliders.length; ++i) {
-        if(this.sphereColliders[i].handle == handle) {
-          this.sphereColliders.splice(i, 1);
-          this.freelists.sphereCollider.push(handle);
-          return;
-        }
-      }
-      throw new Error("Could not remove sphere colliders.");
+      this.sphereColliders.remove(handle);
     },
     integrate: function() {
       var halfDuration = tickDuration/2;
       var halfVelocityChange, entity;
-      for(var i=0; i<this.bodies.length; ++i) {
-        entity = this.bodies[i];
-        halfVelocityChange = Vector3.multiply(entity.force, halfDuration);
-        entity.velocity.add(halfVelocityChange);
-        entity.position.add(entity.velocity);
-        entity.velocity.add(halfVelocityChange);
-        entity.force.reset();
-      }
+      this.bodies.forEach(function(body) {
+        halfVelocityChange = Vector3.multiply(body.force, halfDuration);
+        body.velocity.add(halfVelocityChange);
+        body.position.add(body.velocity);
+        body.velocity.add(halfVelocityChange);
+        body.force.reset();
+      });
     },
-    getBody: function(id) {
-      return this.bodies[id];
+    getBody: function(handle) {
+      return this.bodies.get(handle);
     },
     findCollisions: function(events) {
       var set = {};
       set.staticDynamicCollisions = [];
       var sphereColliderA, sphereColliderB, difference, bodyA, bodyB, radiiSum;
 
-      for(var i=0; i<this.sphereColliders.length; ++i) {
-        sphereColliderA = this.sphereColliders[i];
-        bodyA = this.bodies[sphereColliderA.bodyHandle];
-        for(var n=i+1; n<this.sphereColliders.length; ++n) {
-          sphereColliderB = this.sphereColliders[n];
-          bodyB = this.bodies[sphereColliderB.bodyHandle];
+      var sphereColliders = this.sphereColliders.values;
+
+      for(var i=0; i<sphereColliders.length; ++i) {
+        sphereColliderA = sphereColliders[i];
+        bodyA = this.bodies.get(sphereColliderA.bodyHandle);
+        for(var n=i+1; n<sphereColliders.length; ++n) {
+          sphereColliderB = sphereColliders[n];
+          bodyB = this.bodies.get(sphereColliderB.bodyHandle);
           difference = Vector3.subtract(bodyA.position, bodyB.position);
           radiiSum = sphereColliderA.radius + sphereColliderB.radius;
           if(difference.calcSquaredLength() < Math.pow(radiiSum, 2)) {
@@ -101,10 +82,9 @@
       var closestPoint = new Vector3(0, 0, 0);
       for(var i=0; i<this.boxColliders.length; ++i) {
         boxCollider = this.boxColliders[i];
-        boxBody = this.bodies[boxCollider.bodyHandle];
-        for(var n=0; n<this.sphereColliders.length; ++n) {
-          sphereCollider = this.sphereColliders[n];
-          sphereBody = this.bodies[sphereCollider.bodyHandle];
+        boxBody = this.bodies.get(boxCollider.bodyHandle);
+        this.sphereColliders.forEach(function(sphereCollider) {
+          sphereBody = this.bodies.get(sphereCollider.bodyHandle);
           relativeSphereColliderPosition = Vector3.subtract(sphereBody.position, boxBody.position);
           closestPoint.reset();
           halfDimensions = Vector3.multiply(boxCollider.dimensions, 0.5);
@@ -157,10 +137,10 @@
               dynamicBody: sphereBody,
               separation: separation
             });
-            events.push([boxCollider.bodyHandle, boxCollider.bodyHandle]);
+            events.push([boxCollider.bodyHandle, sphereCollider.bodyHandle]);
             events.push([sphereCollider.bodyHandle, boxCollider.bodyHandle]);
           }
-        }
+        }.bind(this));
       }
 
       return set;

@@ -1,7 +1,7 @@
 (function() {
   var newton;
   var gravity = new Vector3(0, -0.01, 0);
-  var components = [];
+  var components = new ComponentList();
   var handleFreelist = [];
 
   function init(aNewton) {
@@ -9,33 +9,21 @@
   }
 
   function update(timeDelta) {
-    var body;
     var force = Vector3.multiply(gravity, timeDelta);
-    for(var i=0; i<components.length; ++i) {
-      body = newton.getBody(components[i].bodyHandle);
+    components.forEach(function(component) {
+      var body = newton.getBody(component.bodyHandle);
       body.force.add(force);
-    }
+    });
   }
 
   function create(bodyHandle) {
-    var handle = handleFreelist.pop() || components.length;
-
-    components.push({
-      bodyHandle: bodyHandle,
-      gravityHandle: handle
+    return components.add({
+      bodyHandle: bodyHandle
     });
-
-    return handle;
   }
 
   function remove(handle) {
-    for(var i=0; i<components.length; ++i) {
-      if(components[i].gravityHandle == handle) {
-        components.splice(i, 1);
-        handleFreelist.push(handle);
-        return;
-      }
-    }
+    components.remove(handle);
   }
 
   window.Gravity = {

@@ -124,10 +124,6 @@
       newtonTimeBank -= timeDelta;
       executed = true;
     }
-    /*
-    var position = player.getPosition();
-    position.y = Math.max(5, position.y);
-    */
     return executed;
   }
 
@@ -138,14 +134,16 @@
       Gravity.update(timeDelta);
       if(updatePhysics(timeDelta, newtonEvents)) {
         Interpolation.reload();
-        Bullets.update(newtonEvents);
+        Bullets.tick(newtonEvents);
         newtonEvents.length = 0;
       }
+      Bullets.update(timeDelta);
       Shooting.update(timeDelta);
       mouseEvents.length = 0;
     }
     updateCamera();
     Interpolation.update(newtonTimeBank/Newton.tickDuration);
+    Explosions.update(timeDelta);
     RenderFeed.update();
     renderer.clear();
     renderer.render(scene, camera);

@@ -1,27 +1,30 @@
 (function() {
-  var components = [];
+  var components = new ComponentList();
 
   function create(interpolationHandle, meshHandle) {
-    components.push({
+    return components.add({
       interpolationHandle: interpolationHandle,
       meshHandle: meshHandle
     })
   }
 
   function update() {
-    var component, mesh, interpolation;
-    for(var i=0; i<components.length; ++i) {
-      component = components[i];
-      mesh = Rendering.get(component.meshHandle);
+    components.forEach(function(component) {
+      mesh = Rendering.get(component.meshHandle).mesh;
       interpolation = Interpolation.get(component.interpolationHandle);
       mesh.position.x = interpolation.currentPosition.x;
       mesh.position.y = interpolation.currentPosition.y;
       mesh.position.z = interpolation.currentPosition.z;
-    }
+    });
+  }
+
+  function remove(handle) {
+    components.remove(handle);
   }
 
   window.RenderFeed = {
     create: create,
-    update: update
+    update: update,
+    remove: remove
   };
 })();

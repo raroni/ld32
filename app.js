@@ -111,6 +111,39 @@
     update();
   }
 
+  /*
+  function test() {
+    var list = new ComponentList();
+
+    var handles = [];
+
+    var obj;
+    for(var i=0; i<100; ++i) {
+      obj = { key: i };
+
+      if(Math.random() < 0.25 && handles.length != 0) {
+        list.remove(handles.pop());
+      } else {
+        handle = list.add(obj);
+        handles.push(handle);
+        obj.x = handle;
+      }
+
+      for(var n=0; n<handles.length; ++n) {
+        obj = list.get(n);
+        if(obj.x != n) {
+          throw new Error("CORRUPT");
+        } else {
+          console.log("OK");
+        }
+      }
+
+
+    }
+
+  }
+  */
+
   window.App = {
     init: init
   };

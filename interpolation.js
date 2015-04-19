@@ -1,5 +1,5 @@
 (function() {
-  var components = [];
+  var components = new ComponentList();
   var newton;
 
   function init(aNewton) {
@@ -8,37 +8,36 @@
 
   function create(bodyHandle) {
     var body = newton.getBody(bodyHandle);
-    components.push({
+    return components.add({
       bodyHandle: bodyHandle,
       oldPosition: body.position.clone(),
       newPosition: body.position.clone(),
       currentPosition: body.position.clone()
     });
-    return components.length-1;
   }
 
   function reload() {
-    var component, body;
-    for(var i=0; i<components.length; ++i) {
-      component = components[i];
+    components.forEach(function(component) {
       component.oldPosition.set(component.newPosition);
-      body = newton.getBody(component.bodyHandle);
+      var body = newton.getBody(component.bodyHandle);
       component.newPosition.set(body.position);
-    }
+    });
+  }
+
+  function remove(handle) {
+    components.remove(handle);
   }
 
   function get(handle) {
-    return components[handle];
+    return components.get(handle);
   }
 
   function update(progress) {
-    var component, difference;
-    for(var i=0; i<components.length; ++i) {
-      component = components[i];
-      difference = Vector3.subtract(component.newPosition, component.oldPosition);
+    components.forEach(function(component) {
+      var difference = Vector3.subtract(component.newPosition, component.oldPosition);
       difference.multiply(progress);
       component.currentPosition = Vector3.add(component.oldPosition, difference);
-    }
+    });
   }
 
   window.Interpolation = {
@@ -46,6 +45,7 @@
     reload: reload,
     update: update,
     init: init,
-    get: get
+    get: get,
+    remove: remove
   }
 })();
