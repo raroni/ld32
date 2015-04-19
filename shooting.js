@@ -27,7 +27,7 @@
 
     var position = Vector3.add(
       entity.getPosition(),
-      Vector3.multiply(direction, 2)
+      Vector3.multiply(direction, 6.5)
     );
     position.y -= 1.5;
     var force = Vector3.multiply(direction, 30);

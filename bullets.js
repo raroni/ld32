@@ -1,29 +1,31 @@
 (function() {
   var components = [];
+  var cache = {};
   var newton;
 
   function init(newNewton) {
     newton = newNewton;
   }
 
-  function create(bodyHandle) {
+  function create(entityHandle, bodyHandle) {
     components.push({
+      entityHandle: entityHandle,
       bodyHandle: bodyHandle
     });
+    cache[bodyHandle] = components.length-1;
   }
 
-  function update() {
-    var body;
-    for(var i=0; i<components.length; ++i) {
-      body = newton.getBody(components[i].newtonID);
-      /*
-      components[i].mesh.position.set(
-        body.position.x,
-        body.position.y,
-        body.position.z
-      );
-      */
-    }
+  function update(events) {
+    events.forEach(function(event) {
+      var value = cache[event[0]];
+      if(typeof(value) != "undefined") {
+        var component = components[value];
+        var body = newton.getBody(component.bodyHandle);
+        body.velocity.reset();
+        Entities.removeGravity(component.entityHandle);
+        Entities.removeSphereCollider(component.entityHandle);
+      }
+    });
   }
 
   window.Bullets = {

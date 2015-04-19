@@ -116,11 +116,11 @@
     camera.position.z = position.z;
   }
 
-  function updatePhysics(timeDelta) {
+  function updatePhysics(timeDelta, newtonEvents) {
     var executed = false;
     newtonTimeBank += timeDelta;
     while(Newton.tickDuration < newtonTimeBank) {
-      newton.tick();
+      newton.tick(newtonEvents);
       newtonTimeBank -= timeDelta;
       executed = true;
     }
@@ -133,13 +133,15 @@
 
   function update(timeDelta) {
     if(running) {
+      var newtonEvents = [];
       updatePlayer(timeDelta);
       Gravity.update(timeDelta);
-      if(updatePhysics(timeDelta)) {
+      if(updatePhysics(timeDelta, newtonEvents)) {
         Interpolation.reload();
+        Bullets.update(newtonEvents);
+        newtonEvents.length = 0;
       }
       Shooting.update(timeDelta);
-      Bullets.update();
       mouseEvents.length = 0;
     }
     updateCamera();

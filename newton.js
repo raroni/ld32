@@ -1,7 +1,8 @@
 (function() {
   var tickDuration = 0.03;
 
-  function Body(position) {
+  function Body(handle, position) {
+    this.handle = handle;
     this.position = position
     this.force = new Vector3(0, 0, 0);
     this.velocity = new Vector3(0, 0, 0);
@@ -12,24 +13,52 @@
     this.sphereColliders = [];
     this.boxColliders = [];
     this.count = 0;
+    this.freelists = {
+      body: [],
+      sphereCollider: []
+    };
   }
 
   Newton.prototype = {
     createBody: function(position) {
-      this.bodies.push(new Body(position));
-      return this.bodies.length-1;
+      var handle = this.freelists.body.pop() || this.bodies.length;
+      this.bodies.push(new Body(handle, position));
+      return handle;
     },
     createSphereCollider: function(body, radius) {
+      var handle = this.freelists.sphereCollider.pop() || this.sphereColliders.length;
       this.sphereColliders.push({
+        handle: handle,
         bodyHandle: body,
         radius: radius
-      })
+      });
+      return handle;
     },
     createBoxCollider: function(body, dimensions) {
       this.boxColliders.push({
         bodyHandle: body,
         dimensions: dimensions
       });
+    },
+    removeBody: function(handle) {
+      for(var i=0; i<bodies.length; ++i) {
+        if(bodies[i].handle == handle) {
+          bodies.splice(i, 1);
+          freelists.body.push(handle);
+          return;
+        }
+      }
+      throw new Error("Could not remove body.");
+    },
+    removeSphereCollider: function(handle) {
+      for(var i=0; i<this.sphereColliders.length; ++i) {
+        if(this.sphereColliders[i].handle == handle) {
+          this.sphereColliders.splice(i, 1);
+          this.freelists.sphereCollider.push(handle);
+          return;
+        }
+      }
+      throw new Error("Could not remove sphere colliders.");
     },
     integrate: function() {
       var halfDuration = tickDuration/2;
@@ -46,7 +75,7 @@
     getBody: function(id) {
       return this.bodies[id];
     },
-    findCollisions: function() {
+    findCollisions: function(events) {
       var set = {};
       set.staticDynamicCollisions = [];
       var sphereColliderA, sphereColliderB, difference, bodyA, bodyB, radiiSum;
@@ -60,13 +89,15 @@
           difference = Vector3.subtract(bodyA.position, bodyB.position);
           radiiSum = sphereColliderA.radius + sphereColliderB.radius;
           if(difference.calcSquaredLength() < Math.pow(radiiSum, 2)) {
-            console.log('collision!');
+            events.push([sphereColliderA.bodyHandle, sphereColliderB.bodyHandle]);
+            events.push([sphereColliderB.bodyHandle, sphereColliderA.bodyHandle]);
           }
         }
       }
 
       var boxCollider, boxBody, sphereBody, sphereCollider, relativeSphereColliderPosition, distance, halfDimensions, squaredDistance;
       var separationDifference, separation, overlap;
+      var temp, smallestAxis, axisValue;
       var closestPoint = new Vector3(0, 0, 0);
       for(var i=0; i<this.boxColliders.length; ++i) {
         boxCollider = this.boxColliders[i];
@@ -96,15 +127,38 @@
           separationDifference = Vector3.subtract(relativeSphereColliderPosition, closestPoint);
           squaredDistance = separationDifference.calcSquaredLength();
           if(squaredDistance < Math.pow(sphereCollider.radius, 2)) {
-            distance = Math.sqrt(squaredDistance);
-            separation = Vector3.divide(separationDifference, distance);
-            overlap = sphereCollider.radius-distance;
-            separation.multiply(overlap);
+            if(squaredDistance == 0) {
+              axisValue = halfDimensions.x-Math.abs(closestPoint.x);
+              smallestAxis = 'x';
+              temp = halfDimensions.y-Math.abs(closestPoint.y);
+              if(temp < axisValue) {
+                smallestAxis = 'y';
+                axisValue = temp;
+              }
+              temp = halfDimensions.z-Math.abs(closestPoint.z);
+              if(temp < axisValue) {
+                smallestAxis = 'z';
+                axisValue = temp;
+              }
+              closestPoint[smallestAxis] = halfDimensions[smallestAxis] * (Math.abs(closestPoint[smallestAxis])/closestPoint[smallestAxis]);
+
+              separationDifference = Vector3.subtract(closestPoint, relativeSphereColliderPosition);
+              separation = Vector3.normalize(separationDifference);
+              separation.multiply(separationDifference.calcLength()+sphereCollider.radius);
+            } else {
+              distance = Math.sqrt(squaredDistance);
+              separation = Vector3.divide(separationDifference, distance);
+              overlap = sphereCollider.radius-distance;
+              separation.multiply(overlap);
+            }
+
             set.staticDynamicCollisions.push({
               staticBody: boxBody,
               dynamicBody: sphereBody,
               separation: separation
             });
+            events.push([boxCollider.bodyHandle, boxCollider.bodyHandle]);
+            events.push([sphereCollider.bodyHandle, boxCollider.bodyHandle]);
           }
         }
       }
@@ -118,9 +172,9 @@
         collision.dynamicBody.position.add(collision.separation);
       }
     },
-    tick: function() {
+    tick: function(events) {
       this.integrate();
-      var collisionSet = this.findCollisions();
+      var collisionSet = this.findCollisions(events);
       this.resolveCollisions(collisionSet);
     }
   };
